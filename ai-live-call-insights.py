@@ -1,95 +1,88 @@
 import speech_recognition as sr
 import pyttsx3
 
-listener = sr.Recognizer()
+recognizer = sr.Recognizer()
 speaker = pyttsx3.init()
-speaker.setProperty('rate', 150)
+speaker.setProperty('rate', 140)
 
-faq_data = {
-    "order": "Place the order.",
-    "return": "You can return it from your orders section.",
-    "cancel": "Cancel option is available before shipping.",
-    "refund": "Refund takes 5 to 7 working days.",
-    "damaged": "You can request a replacement for damaged items.",
-    "invoice": "You can download it from your order details.",
-    "address": "You can change your address before it is shipped.",
-    "password": "You can reset your password using the forgot password option.",
-    "login": "Try resetting your password or contact support.",
-    "hello": "Hello! What can I help you with?",
-    "how are you": "I'm fine. How can I help you?",
-    "who are you": "I'm an AI."
+
+faq_keywords = {
+    "refund": "Refunds are processed within 5 to 7 working days after pickup or cancellation.",
+    "return": "You can raise a return request from your ‘My Orders’ section.",
+    "cancel": "You can cancel your order before it is shipped from the ‘My Orders’ page.",
+    "track": "You can track your order in the ‘My Orders’ section on your account.",
+    "invoice": "You can download your invoice from your order details page.",
+    "bill": "You can download your invoice from your order details page.",
+    "damaged": "We're sorry! You can request a replacement through the ‘My Orders’ section.",
+    "broken": "We're sorry! You can request a replacement through the ‘My Orders’ section.",
+    "payment": "If money was deducted, it will be automatically refunded within 3–5 business days.",
+    "emi": "EMI is available on select cards and high-value products.",
+    "order": "You can place an order by adding items to your cart and proceeding to checkout.",
+    "hello": "Hello! How can I help you today?",
+    "hi": "Hi there! How can I assist you?",
+    "who": "I'm your virtual assistant to help with your orders and queries.",
+    "thank": "You're welcome! Happy to help.",
+    "bye": "Goodbye! Have a great day!",
+    "exit": "Goodbye! Thank you for calling."
 }
+
 conversation_log = []
 
-def talk(text):
-    print(f"\n AI: {text}")
+def speak(text):
+    print("AI:", text)
     speaker.say(text)
     speaker.runAndWait()
 
-def get_answer(msg):
-    msg = msg.lower()
-    for keyword in faq_data:
-        if keyword in msg:
-            return faq_data[keyword]
-    return "Sorry, I couldn't find the info you need."
-
-def print_summary():
-    print("\n Call Summary:")
-    if not conversation_log:
-        print("No valid conversation recorded.")
-        return
-
-    for i, (q, a) in enumerate(conversation_log, 1):
-        print(f"\n{i}.")
-        print(f"Customer: {q}")
-        print(f"AI: {a}")
-
-def start_conversation():
-    print("\n AI Call Assistant with ENTER key — Started!")
-    print("Press Enter to speak (say 'exit' to end)\n")
-
+def listen():
+    with sr.Microphone() as source:
+        print("Listening...")
+        audio = recognizer.listen(source)
     try:
-        with sr.Microphone() as source:
-            listener.adjust_for_ambient_noise(source)
+        user_text = recognizer.recognize_google(audio).lower()
+        print("You:", user_text)
+        return user_text
+    except sr.UnknownValueError:
+        return "Sorry, I didn't catch that."
 
-            while True:
-                input("Press Enter to talk... ")
+def get_response(user_input):
+    matched_responses = []
+    for keyword in faq_keywords:
+        if keyword in user_input:
+            matched_responses.append(faq_keywords[keyword])
+    if matched_responses:
+        return " ".join(set(matched_responses))
+    return "I'm not sure about that, but you can contact customer support for more help."
 
-                try:
-                    print("Listening...")
-                    audio = listener.listen(source, timeout=5)
-                    user_input = listener.recognize_google(audio)
+print("AI Live Call Assistant Ready (Offline).")
+print("Press Enter to talk. Say 'bye' or 'exit' to stop.\n")
 
-                    if "exit" in user_input.lower():
-                        talk("Call ended. Thank you!")
-                        conversation_log.append((user_input, "Call ended."))
-                        break
+while True:
+    input("Press Enter to start speaking... ")
+    user_text = listen()
 
-                    print(f"\n Customer: {user_input}")
-                    reply = get_answer(user_input)
-                    talk(reply)
+    if "bye" in user_text or "exit" in user_text:
+        response = get_response(user_text)
+        speak(response)
+        break
 
-                    conversation_log.append((user_input, reply))
+    response = get_response(user_text)
+    speak(response)
+    conversation_log.append(f"You: {user_text}\n AI: {response}\n")
 
-                except sr.UnknownValueError:
-                    print("Didn't catch that. Please try again.")
-                except sr.WaitTimeoutError:
-                    print("No voice detected. Try again.")
-                except sr.RequestError as e:
-                    print("Mic/Speech error:", e)
-                    break
+print("\n Call Summary:")
+print("-" * 30)
+for line in conversation_log:
+    print(line)
 
-    except KeyboardInterrupt:
-        print("\n Exited by user (Ctrl+C)")
+with open("call_summary.txt", "w", encoding="utf-8") as f:
+    f.write(" AI Live Call Summary\n\n")
+    f.write("\n".join(conversation_log))
 
-    except Exception as mic_error:
-        print("Microphone error:", mic_error)
+print("\n Summary saved to call_summary.txt")
 
-    finally:
-        print_summary()
 
-if __name__ == "__main__":
-    start_conversation()
+
+
 
 
 
