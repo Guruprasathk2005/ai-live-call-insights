@@ -15,9 +15,9 @@ faq_data = {
     "address": "You can change your address before it is shipped.",
     "password": "You can reset your password using the forgot password option.",
     "login": "Try resetting your password or contact support.",
-    "hello" : "Hello !! what can i help you."
-    "How are You" : "I am fine what can i help for you."
-    "Who are you" : "I am AI"
+    "hello": "Hello! What can I help you with?",
+    "how are you": "I'm fine. How can I help you?",
+    "who are you": "I'm an AI."
 }
 conversation_log = []
 
